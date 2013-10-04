@@ -1,8 +1,8 @@
 define(["knockout"],function ( ko ){
 
 	var commonsMethods = {
-		toJSON: function (){
-			return ko.toJSON( this )
+		toJS: function (){
+			return ko.toJS( this )
 		}
 	}
 
@@ -19,6 +19,11 @@ define(["knockout"],function ( ko ){
 	function makeObservable( object, node ) {
 		makeAttributesObservable( object )
 		extendObjectWithCommonMethods( object )
+		return object
+	}
+	
+	function makeObservableAndApplyBinding( object, node ) {
+		makeObservable( object, node )
 		ko.applyBindings( object, node )
 	}
 
@@ -45,8 +50,10 @@ define(["knockout"],function ( ko ){
 		var value = object[attrName]
 		if ( value instanceof Array )
 			object[attrName] = ko.observableArray( value )
-		else
+		else if ( !value || typeof value != "object" )
 			object[attrName] = ko.observable( value )
+		else
+			object[attrName] = ko.observable( makeObservable( value ) )
 	}
 	
 	/**
@@ -57,7 +64,7 @@ define(["knockout"],function ( ko ){
 
 	    	jquery.fn.observe = function ( object ) {
 	    		return this.each(function(){
-	    			makeObservable( object, this )
+	    			makeObservableAndApplyBinding( object, this )
 	    		})
 	    	}
 
@@ -66,7 +73,7 @@ define(["knockout"],function ( ko ){
 
 	return {
 		observe: function ( node, model ) {
-			makeObservable( model, node )
+			makeObservableAndApplyBinding( model, node )
 		}
 	}
 })
