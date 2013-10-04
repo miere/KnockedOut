@@ -1,48 +1,75 @@
 define(["knockout"],function ( ko ){
 
-	var commonsMethods = {
-		toJS: function (){
-			return ko.toJS( this )
+	/**
+	 * KnockoutJS API Improvement
+	 */
+	ko.observable.fn.toJS = function (){
+		return ko.toJS( this )
+	}
+	
+	ko.observable.fn.populate = function ( fromObject ){
+		var value;
+		var self = this()
+		for ( var attrName in self ){
+			value = self[attrName]
+			if ( attrName == "toJS"
+			||   attrName == "populate" )
+				continue;
+			if ( value && isFunction( value ) && !isFunction( value() ) )
+				value( fromObject[attrName] )
 		}
 	}
 
-	function appendArgsToArray( array, args ) {
-		for ( var i=0; i< args.length; i++ )
-			array.push( args[i] )
+	ko.observableArray.fn.removeAt = function ( index ){
+		if ( index >= 0 )
+			return this.splice( index, 1 )
 	}
 
-	function extendObjectWithCommonMethods( object ) {
-		for ( var attrName in commonsMethods )
-			object[attrName] = commonsMethods[attrName]
-	}
-
-	function makeObservable( object, node ) {
-		makeAttributesObservable( object )
-		extendObjectWithCommonMethods( object )
-		return object
+	ko.observableArray.fn.set = function ( index, newValue ) {
+		this()[index] = newValue
+		this.valueHasMutated()
 	}
 	
+	/**
+	 * Grant that will memorize all parameters and return a method
+	 * that could run the original function with memorized parameters.
+	 * 
+	 * @returns {Function}
+	 */
+	Function.prototype.withParameters = function (){
+		var args = arguments
+		var self = this
+		return function (){
+			return self.apply( self, args )
+		}
+	}
+
 	function makeObservableAndApplyBinding( object, node ) {
 		makeObservable( object, node )
 		ko.applyBindings( object, node )
 	}
 
-	function makeAttributesObservable( object ) {
+	function makeObservable( object, node ) {
 		for ( var attrName in object )
-			if ( typeof object[attrName] == "function" )
+			if ( isFunction(object[attrName]) )
 				makeFunctionARealMethod( object, attrName )
 			else
 				makeAttributeObservable( object, attrName )
+		return object
 	}
 
+	function isFunction( value ) {
+		return typeof value == "function"
+	}
+
+	/**
+	 * Will grant that 'this' will not point to the caller object,
+	 * but to the Object instance.
+	 */
 	function makeFunctionARealMethod( self, methodName ){
 		var method = self[methodName]
 		self[methodName] = function(){
-			var args = new Array()
-			if ( this != self )
-				args.push ( this )
-			appendArgsToArray( args, arguments )
-			method.apply( self, args )
+			method.apply( self, arguments )
 		}
 	}
 
@@ -55,7 +82,7 @@ define(["knockout"],function ( ko ){
 		else
 			object[attrName] = ko.observable( makeObservable( value ) )
 	}
-	
+
 	/**
 	 * Create a knockedout plugin if jquery will be resolved as a dependency.
 	 */
