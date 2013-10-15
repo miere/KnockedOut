@@ -44,17 +44,30 @@ define(["knockout"],function ( ko ){
 		}
 	}
 
+	/**
+	 * The main function, executed when need to bind a node
+	 * against a object.
+	 */
 	function makeObservableAndApplyBinding( object, node ) {
 		makeObservable( object, node )
 		ko.applyBindings( object, node )
 	}
 
+	/**
+	 * Make any non-observable object a real KnockoutJS observable
+	 * object. Functions are thread as real methods, granting that
+	 * the 'this' variable points to the object.
+	 */
 	function makeObservable( object, node ) {
-		for ( var attrName in object )
-			if ( isFunction(object[attrName]) )
-				makeFunctionARealMethod( object, attrName )
-			else
-				makeAttributeObservable( object, attrName )
+		var value = null
+		for ( var attrName in object ) {
+			value = object[attrName]
+			if ( !ko.isObservable( value ) )
+				if ( isFunction( value ) )
+					makeFunctionARealMethod( object, attrName )
+				else
+					makeAttributeObservable( object, attrName )
+		}
 		return object
 	}
 
@@ -73,6 +86,9 @@ define(["knockout"],function ( ko ){
 		}
 	}
 
+	/**
+	 * Grant that the specific attribute are observable.
+	 */
 	function makeAttributeObservable( object, attrName ) {
 		var value = object[attrName]
 		if ( value instanceof Array )
@@ -98,6 +114,10 @@ define(["knockout"],function ( ko ){
 	    });
 	}
 
+	/**
+	 * Exposing public methods that will be used when the
+	 * module is called through AMD module.
+	 */
 	return {
 		observe: function ( node, model ) {
 			makeObservableAndApplyBinding( model, node )
