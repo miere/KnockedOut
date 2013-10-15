@@ -6,7 +6,7 @@ define(["knockout"],function ( ko ){
 	ko.observable.fn.toJS = function (){
 		return ko.toJS( this )
 	}
-	
+
 	ko.observable.fn.populate = function ( fromObject ){
 		var value;
 		var self = this()
@@ -29,7 +29,28 @@ define(["knockout"],function ( ko ){
 		this()[index] = newValue
 		this.valueHasMutated()
 	}
+
+	ko.observableArray.fn.get = function ( index ) {
+		return this()[index]
+	}
+
+	ko.observableArray.fn.clear = function ( index, newValue ) {
+		this.foreach(function(){
+			this.pop()
+		})
+	}
+
+	ko.observableArray.fn.append = function ( newValue ) {
+		this.push( makeObservable( newValue ) )
+	}
 	
+	ko.observableArray.fn.foreach = function ( callback, target ) {
+		target = target || this
+		var array = this()
+		for ( var i=0; i<array.length; i++ )
+			callback.call( target, array[i], i )
+	}
+
 	/**
 	 * Grant that will memorize all parameters and return a method
 	 * that could run the original function with memorized parameters.
@@ -82,7 +103,7 @@ define(["knockout"],function ( ko ){
 	function makeFunctionARealMethod( self, methodName ){
 		var method = self[methodName]
 		self[methodName] = function(){
-			method.apply( self, arguments )
+			return method.apply( self, arguments )
 		}
 	}
 
@@ -92,7 +113,7 @@ define(["knockout"],function ( ko ){
 	function makeAttributeObservable( object, attrName ) {
 		var value = object[attrName]
 		if ( value instanceof Array )
-			object[attrName] = ko.observableArray( value )
+			object[attrName] = makeArrayObservable( value )
 		else if ( !value || typeof value != "object" )
 			object[attrName] = ko.observable( value )
 		else
@@ -100,7 +121,19 @@ define(["knockout"],function ( ko ){
 	}
 
 	/**
-	 * Create a knockedout plugin if jquery will be resolved as a dependency.
+	 * Grant that all array elements are 
+	 */
+	function makeArrayObservable( array ) {
+		var observableArray = new Array()
+		for ( var i=0; i<array.length; i++ ) {
+			observableArray.push (
+				makeObservable( array[i] ) )
+		}
+		return ko.observableArray( observableArray )
+	}
+
+	/**
+	 * Create a KnockedOut plugin if jquery will be resolved as a dependency.
 	 */
 	if (require.specified('jquery')) {
 	    require( [ 'jquery' ], function (jquery) {
