@@ -224,7 +224,7 @@ K = (function (){
 /**
  * Create a KnockedOut plugin
  */
-if ( typeof 'jQuery' != undefined ) {
+try {
 	jQuery.observe = function ( object ) {
 		return $("body").observe( object )
 	}
@@ -235,4 +235,5 @@ if ( typeof 'jQuery' != undefined ) {
 		})
 		return object
 	}
-}
+} catch (e){}
+
