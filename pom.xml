@@ -2,22 +2,77 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>io.skullabs.web</groupId>
-		<artifactId>maven-web-project</artifactId>
-		<version>0.1.0</version>
-		<relativePath/>
-	</parent>
-
 	<groupId>io.skullabs.knockedout</groupId>
 	<artifactId>knockedout</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<name>KnockedOut</name>
 	<packaging>pom</packaging>
 
 	<build>
 		<sourceDirectory>${project.basedir}/source</sourceDirectory>
 		<directory>${project.basedir}/dist</directory>
+		
+		<plugins>
+            <plugin>
+                <groupId>com.samaxes.maven</groupId>
+                <artifactId>minify-maven-plugin</artifactId>
+                <version>1.7.4</version>
+                <executions>
+                    <execution>
+                        <id>merge-and-minify</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>minify</goal>
+                        </goals>
+                        <configuration>
+                            <skipMerge>false</skipMerge>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>minify-only</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>minify</goal>
+                        </goals>
+                        <configuration>
+                            <skipMerge>true</skipMerge>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <webappSourceDir>${project.build.sourceDirectory}</webappSourceDir>
+                    <webappTargetDir>${project.build.directory}</webappTargetDir>
+
+                    <!-- JavaScript Configuration -->
+                    <jsSourceDir>.</jsSourceDir>
+                    <jsTargetDir>.</jsTargetDir>
+                    <jsFinalFile>${project.artifactId}-${project.version}.js</jsFinalFile>
+                    <jsEngine>CLOSURE</jsEngine>
+
+                    <jsSourceIncludes>
+                        <jsSourceInclude>**/*.js</jsSourceInclude>
+                    </jsSourceIncludes>
+                    <jsSourceExcludes>
+                        <jsSourceExclude>**/*.min.js</jsSourceExclude>
+                    </jsSourceExcludes>
+
+                    <closureLanguage>ECMASCRIPT5</closureLanguage>
+                    <closureSortDependencies>false</closureSortDependencies>
+                    <skipMerge>true</skipMerge>
+
+                    <!-- CSS Configuration 
+                    <cssSourceDir>.</cssSourceDir>
+                    <cssTargetDir>.</cssTargetDir>
+                    <cssFinalFile>${project.artifactId}-${project.version}.css</cssFinalFile>
+                    <cssSourceIncludes>
+                        <cssSourceInclude>**/*.css</cssSourceInclude>
+                    </cssSourceIncludes>
+                    <cssSourceExcludes>
+                        <cssSourceExclude>**/*.min.css</cssSourceExclude>
+                    </cssSourceExcludes> -->
+                </configuration>
+            </plugin>
+        </plugins>
 	</build>
 
 </project>
